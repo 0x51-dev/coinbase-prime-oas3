@@ -8,47 +8,19 @@ security:
     AccessSignature: [ ]
     AccessTimestamp: [ ]
 paths:
-  /entities/{entityId}/assets:
+  /entities/{entity_id}/assets:
     get:
       operationId: listAssets
       summary: List all assets available for a given entity.
       parameters:
-        - name: entityId
-          in: path
-          description: The entity ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/entity_id'
       responses:
         '200':
           description: A successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  assets:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: The name of the asset
-                        symbol:
-                          type: string
-                          description: The mutable series of letters used to identify the asset
-                        decimal_precision:
-                          type: string
-                          description: The number of decimals supported for the asset
-                        trading_supported:
-                          type: boolean
-                          description: Indicates whether this asset can be traded
-                        explorer_url:
-                          type: string
-                          format: uri
-                          description: Base URL to our recommended block explorer (crypto only)
+                $ref: '#/components/schemas/AssetList'
         '400':
           $ref: '#/components/schemas/ErrorBadRequest'
         '401':
@@ -59,49 +31,20 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /entities/{entityId}/payment-methods/{paymentMethodId}:
+  /entities/{entity_id}/payment-methods/{payment_method_id}:
     get:
       operationId: getEntityPaymentMethod
       summary: Get payment method details by id for a given entity.
       parameters:
-        - name: entityId
-          in: path
-          description: The entity ID
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: paymentMethodId
-          in: path
-          description: The payment method ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/entity_id'
+        - $ref: '#/components/parameters/payment_method_id'
       responses:
         '200':
           description: A successful response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  details:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      symbol:
-                        type: string
-                      payment_method_type:
-                        type: string
-                        enum: [ METHOD_WIRE, METHOD_SEN, METHOD_SWIFT ]
-                      name:
-                        type: string
-                      account_number:
-                        type: string
-                      bank_code:
-                        type: string
+                $ref: '#/components/schemas/PaymentMethod'
         '400':
           $ref: '#/components/schemas/ErrorBadRequest'
         '401':
@@ -112,18 +55,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /entities/{entityId}/users:
+  /entities/{entity_id}/users:
     get:
       operationId: listUsers
       summary: List all users associated with a given entity.
       parameters:
-        - name: entityId
-          in: path
-          description: The entity ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/entity_id'
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/SortDirection'
@@ -135,12 +72,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  users:
+                    $ref: '#/components/schemas/Users'
                   pagination:
                     $ref: '#/components/schemas/Pagination'
-                  users:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/schemas/ErrorBadRequest'
         '401':
@@ -161,12 +96,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  portfolios:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Portfolio'
+                $ref: '#/components/schemas/Portfolios'
         '400':
           $ref: '#/components/schemas/ErrorBadRequest'
         '401':
@@ -177,18 +107,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}:
+  /portfolios/{portfolio_id}:
     get:
       operationId: getPortfolioByID
       summary: Retrieve a given portfolio by its portfolio ID.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
       responses:
         '200':
           description: A successful response
@@ -209,18 +133,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/activities:
+  /portfolios/{portfolio_id}/activities:
     get:
       operationId: listActivities
       summary: List all activities associated with a given entity.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - name: symbols
           in: query
           description: Filter by list of currencies
@@ -234,16 +152,14 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              enum: [ OTHER_ACTIVITY_CATEGORY, ACTIVITY_CATEGORY_ORDER, ACTIVITY_CATEGORY_TRANSACTION, ACTIVITY_CATEGORY_ACCOUNT, ACTIVITY_CATEGORY_ADMIN, ACTIVITY_CATEGORY_ALLOCATION ]
+              $ref: '#/components/schemas/ActivityCategory'
         - name: statuses
           in: query
           description: Filter by list of statuses
           schema:
             type: array
             items:
-              type: string
-              enum: [ OTHER_ACTIVITY_STATUS, ACTIVITY_STATUS_CANCELLED, ACTIVITY_STATUS_PROCESSING, ACTIVITY_STATUS_COMPLETED, ACTIVITY_STATUS_EXPIRED, ACTIVITY_STATUS_REJECTED, ACTIVITY_STATUS_FAILED ]
+              $ref: '#/components/schemas/ActivityStatus'
         - name: start_time
           in: query
           description: Filter created time by start date
@@ -284,18 +200,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/activities/{activityId}:
+  /portfolios/{portfolio_id}/activities/{activityId}:
     get:
       operationId: getActivityByID
       summary: List all activities associated with a given entity.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio to retrieve activity for
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - name: activityId
           in: path
           description: Id of the activity to retrieve
@@ -323,18 +233,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/address_book:
+  /portfolios/{portfolio_id}/address_book:
     get:
       operationId: getAddressBook
       summary: Gets a list of address book addresses.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - name: currency_symbol
           in: query
           description: Cryptocurrency symbol -- if nothing is passed, all addresses are returned
@@ -414,13 +318,7 @@ paths:
       operationId: createAddressBookEntry
       summary: Creates an entry for a portfolio's trusted addresses.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
       requestBody:
         required: true
         content:
@@ -480,18 +378,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/balances:
+  /portfolios/{portfolio_id}/balances:
     get:
       operationId: listPortfolioBalances
       summary: Gets a list of address book addresses.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - name: symbols
           in: query
           description: A list of symbols by which to filter the response
@@ -544,18 +436,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/commission:
+  /portfolios/{portfolio_id}/commission:
     get:
       operationId: getPortfolioCommission
       summary: Query balance for a specific wallet.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
       responses:
         '200':
           description: A successful response
@@ -586,18 +472,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/credit:
+  /portfolios/{portfolio_id}/credit:
     get:
       operationId: getPortfolioCreditInformation
       summary: Retrieve a portfolio's post-trade credit information.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
       responses:
         '200':
           description: A successful response
@@ -657,18 +537,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/products:
+  /portfolios/{portfolio_id}/products:
     get:
       operationId: listPortfolioProducts
       summary: List tradable products for a given portfolio.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/SortDirection'
@@ -723,18 +597,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/transactions:
+  /portfolios/{portfolio_id}/transactions:
     get:
       operationId: listPortfolioTransactions
       summary: List transactions for a given portfolio (only transactions that affect balances are accessible).
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - name: symbols
           in: query
           description: A case insensitive list of symbols by which to filter the response
@@ -789,18 +657,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/transactions/{transactionId}:
+  /portfolios/{portfolio_id}/transactions/{transactionId}:
     get:
       operationId: getTransactionById
       summary: List transactions for a given portfolio (only transactions that affect balances are accessible).
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - name: transactionId
           in: path
           description: The transaction ID
@@ -827,18 +689,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/users:
+  /portfolios/{portfolio_id}/users:
     get:
       operationId: listPortfolioUsers
       summary: List all users associated with a given portfolio.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - $ref: '#/components/parameters/Cursor'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/SortDirection'
@@ -866,18 +722,12 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets:
+  /portfolios/{portfolio_id}/wallets:
     get:
       operationId: listPortfolioWallets
       summary: List all wallets associated with a given portfolio.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The ID of the portfolio
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
         - name: type
           in: query
           description: The wallet type.
@@ -935,13 +785,7 @@ paths:
       operationId: createWallet
       summary: Create a wallet.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The ID of the portfolio
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
       requestBody:
         required: true
         content:
@@ -990,25 +834,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets/{walletId}:
+  /portfolios/{portfolio_id}/wallets/{wallet_id}:
     get:
       operationId: getWalletByID
       summary: Retrieve a specific wallet by Wallet ID.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: walletId
-          in: path
-          description: Wallet ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/wallet_id'
       responses:
         '200':
           description: A successful response
@@ -1042,25 +874,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets/{walletId}/balance:
+  /portfolios/{portfolio_id}/wallets/{wallet_id}/balance:
     get:
       operationId: getWalletBalance
       summary: Query balance for a specific wallet.
       parameters:
-        - name: portfolioId
-          in: path
-          description: Portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: walletId
-          in: path
-          description: Wallet ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/wallet_id'
       responses:
         '200':
           description: A successful response
@@ -1081,25 +901,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets/{walletId}/conversion:
+  /portfolios/{portfolio_id}/wallets/{wallet_id}/conversion:
     post:
       operationId: createConversion
       summary: Perform a conversion between 2 assets.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The ID of the portfolio
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: walletId
-          in: path
-          description: The wallet ID that the conversion will originate from
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/wallet_id'
       requestBody:
         required: true
         content:
@@ -1178,25 +986,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets/{walletId}/deposit_instructions:
+  /portfolios/{portfolio_id}/wallets/{wallet_id}/deposit_instructions:
     get:
       operationId: getWalletDepositInstructions
       summary: Retrieve a specific wallet's deposit instructions.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The portfolio ID
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: walletId
-          in: path
-          description: The wallet ID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/wallet_id'
         - name: deposit_type
           in: query
           description: The deposit type.
@@ -1258,25 +1054,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets/{walletId}/transactions:
+  /portfolios/{portfolio_id}/wallets/{wallet_id}/transactions:
     post:
       operationId: listWalletTransactions
       summary: Retrieve transactions for a given wallet (only transactions that affect balances are accessible).
       parameters:
-        - name: portfolioId
-          in: path
-          description: The ID of the portfolio
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: walletId
-          in: path
-          description: The wallet ID that the conversion will originate from
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/wallet_id'
         - name: types
           in: query
           description: The transaction types by which to filter the response
@@ -1324,25 +1108,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets/{walletId}/transfers:
+  /portfolios/{portfolio_id}/wallets/{wallet_id}/transfers:
     post:
       operationId: createTransfer
       summary: Create a wallet transfer.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The ID of the portfolio
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: walletId
-          in: path
-          description: The wallet ID that the conversion will originate from
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/wallet_id'
       requestBody:
         required: true
         content:
@@ -1423,25 +1195,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolioId}/wallets/{walletId}/withdrawals:
+  /portfolios/{portfolio_id}/wallets/{wallet_id}/withdrawals:
     post:
       operationId: createWithdrawal
       summary: Create a withdrawal.
       parameters:
-        - name: portfolioId
-          in: path
-          description: The ID of the portfolio
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: walletId
-          in: path
-          description: The wallet ID that the conversion will originate from
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/wallet_id'
       requestBody:
         required: true
         content:
@@ -1563,6 +1323,41 @@ components:
       name: X-CB-ACCESS-TIMESTAMP
 
   parameters:
+    entity_id:
+      name: entity_id
+      in: path
+      description: The entity ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: '2c521d6c-1cfb-4371-bf9c-5a42938d3e75'
+    payment_method_id:
+      name: payment_method_id
+      in: path
+      description: The payment method ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 'cbdd9f28-34e7-5152-b1dc-d657bf8df858'
+    portfolio_id:
+      name: portfolio_id
+      in: path
+      description: The portfolio ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    wallet_id:
+      name: wallet_id
+      in: path
+      description: Wallet ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     Cursor:
       name: cursor
       in: query
@@ -1613,6 +1408,12 @@ components:
           type: boolean
           description: A boolean value indicating whether there are more items to paginate through
 
+    ActivityCategory:
+      type: string
+      enum: [ OTHER_ACTIVITY_CATEGORY, ACTIVITY_CATEGORY_ORDER, ACTIVITY_CATEGORY_TRANSACTION, ACTIVITY_CATEGORY_ACCOUNT, ACTIVITY_CATEGORY_ADMIN, ACTIVITY_CATEGORY_ALLOCATION ] 
+    ActivityStatus:
+      type: string
+      enum: [ OTHER_ACTIVITY_STATUS, ACTIVITY_STATUS_CANCELLED, ACTIVITY_STATUS_PROCESSING, ACTIVITY_STATUS_COMPLETED, ACTIVITY_STATUS_EXPIRED, ACTIVITY_STATUS_REJECTED, ACTIVITY_STATUS_FAILED ]  
     Activity:
       type: object
       properties:
@@ -1625,8 +1426,7 @@ components:
           format: uuid
           description: A reference for orders and transactions, n/a for other category types
         category:
-          type: string
-          enum: [ OTHER_ACTIVITY_CATEGORY, ACTIVITY_CATEGORY_ORDER, ACTIVITY_CATEGORY_TRANSACTION, ACTIVITY_CATEGORY_ACCOUNT, ACTIVITY_CATEGORY_ADMIN, ACTIVITY_CATEGORY_ALLOCATION ]
+          $ref: '#/components/schemas/ActivityCategory'
         type:
           type: string
           enum: [ OTHER_ACTIVITY_TYPE, ACTIVITY_TYPE_LIMIT_ORDER, ACTIVITY_TYPE_MARKET_ORDER, ACTIVITY_TYPE_TWAP_ORDER, ACTIVITY_TYPE_DEPOSIT, ACTIVITY_TYPE_WITHDRAWAL, ACTIVITY_TYPE_INTERNAL_TRANSFER, ACTIVITY_TYPE_CREATE_WALLET, ACTIVITY_TYPE_REMOVE_WALLET, ACTIVITY_TYPE_UPDATE_WALLET, ACTIVITY_TYPE_CAST_VOTE, ACTIVITY_TYPE_ENABLE_VOTING, ACTIVITY_TYPE_STAKE, ACTIVITY_TYPE_UNSTAKE, ACTIVITY_TYPE_CHANGE_VALIDATOR, ACTIVITY_TYPE_RESTAKE, ACTIVITY_TYPE_ADDRESS_BOOK, ACTIVITY_TYPE_TEAM_MEMBERS, ACTIVITY_TYPE_BILLING, ACTIVITY_TYPE_SECURITY, ACTIVITY_TYPE_API, ACTIVITY_TYPE_SETTINGS, ACTIVITY_TYPE_SMART_CONTRACT, ACTIVITY_TYPE_ALLOCATION_IN, ACTIVITY_TYPE_ALLOCATION_OUT, ACTIVITY_TYPE_ALLOCATION_IN_REVERSAL, ACTIVITY_TYPE_ALLOCATION_OUT_REVERSAL, ACTIVITY_TYPE_CONVERSION ]
@@ -1634,8 +1434,7 @@ components:
           type: string
           enum: [ NO_SECONDARY_TYPE, ACTIVITY_SECONDARY_TYPE_BUY, ACTIVITY_SECONDARY_TYPE_SELL, ACTIVITY_SECONDARY_TYPE_INTERNAL_TRANSFER, ACTIVITY_SECONDARY_TYPE_SWEEP_TRANSFER_TYPE ]
         status:
-          type: string
-          enum: [ OTHER_ACTIVITY_STATUS, ACTIVITY_STATUS_CANCELLED, ACTIVITY_STATUS_PROCESSING, ACTIVITY_STATUS_COMPLETED, ACTIVITY_STATUS_EXPIRED, ACTIVITY_STATUS_REJECTED, ACTIVITY_STATUS_FAILED ]
+          $ref: '#/components/schemas/ActivityStatus'
         created_by:
           type: string
           format: uuid
@@ -1685,6 +1484,32 @@ components:
         updated_at:
           type: string
           description: Time for latest status update of account activity
+    Asset:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the asset
+        symbol:
+          type: string
+          description: The mutable series of letters used to identify the asset
+        decimal_precision:
+          type: string
+          description: The number of decimals supported for the asset
+        trading_supported:
+          type: boolean
+          description: Indicates whether this asset can be traded
+        explorer_url:
+          type: string
+          format: uri
+          description: Base URL to our recommended block explorer (crypto only)
+    AssetList:
+      type: object
+      properties:
+        assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Asset'
     Balance:
       type: object
       properties:
@@ -1823,6 +1648,26 @@ components:
         order_total:
           type: string
           description: Order quantity + fees
+    PaymentMethod:
+      type: object
+      properties:
+        details:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            symbol:
+              type: string
+            payment_method_type:
+              type: string
+              enum: [ METHOD_WIRE, METHOD_SEN, METHOD_SWIFT ]
+            name:
+              type: string
+            account_number:
+              type: string
+            bank_code:
+              type: string
     Portfolio:
       type: object
       properties:
@@ -1841,6 +1686,13 @@ components:
           type: string
           format: uuid
           description: The ID of the organization to which the portfolio is associated
+    Portfolios:
+      type: object
+      properties:
+        portfolios:
+          type: array
+          items:
+            $ref: '#/components/schemas/Portfolio'
     PortfolioUser:
       allOf:
         - $ref: '#/components/schemas/User'
@@ -1944,3 +1796,7 @@ components:
         role:
           type: string
           enum: [ AUDITOR, SIGNATORY, ADMIN, INITIATOR, REVIEWER, TRADER, FULL_TRADER, TEAM_MANAGER, APPROVER ]
+    Users:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
