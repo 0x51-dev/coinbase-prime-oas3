@@ -1,0 +1,1946 @@
+openapi: 3.0.3
+info:
+  title: Coinbase Prime API
+  version: 0.0.1
+security:
+  - AccessKey: [ ]
+    AccessPassphrase: [ ]
+    AccessSignature: [ ]
+    AccessTimestamp: [ ]
+paths:
+  /entities/{entityId}/assets:
+    get:
+      operationId: listAssets
+      summary: List all assets available for a given entity.
+      parameters:
+        - name: entityId
+          in: path
+          description: The entity ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the asset
+                        symbol:
+                          type: string
+                          description: The mutable series of letters used to identify the asset
+                        decimal_precision:
+                          type: string
+                          description: The number of decimals supported for the asset
+                        trading_supported:
+                          type: boolean
+                          description: Indicates whether this asset can be traded
+                        explorer_url:
+                          type: string
+                          format: uri
+                          description: Base URL to our recommended block explorer (crypto only)
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /entities/{entityId}/payment-methods/{paymentMethodId}:
+    get:
+      operationId: getEntityPaymentMethod
+      summary: Get payment method details by id for a given entity.
+      parameters:
+        - name: entityId
+          in: path
+          description: The entity ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: paymentMethodId
+          in: path
+          description: The payment method ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      symbol:
+                        type: string
+                      payment_method_type:
+                        type: string
+                        enum: [ METHOD_WIRE, METHOD_SEN, METHOD_SWIFT ]
+                      name:
+                        type: string
+                      account_number:
+                        type: string
+                      bank_code:
+                        type: string
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /entities/{entityId}/users:
+    get:
+      operationId: listUsers
+      summary: List all users associated with a given entity.
+      parameters:
+        - name: entityId
+          in: path
+          description: The entity ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios:
+    get:
+      operationId: listPortfolios
+      summary: List all portfolios for which the current API key has read access. (Currently, an API key is scoped to only one portfolio.)
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  portfolios:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Portfolio'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}:
+    get:
+      operationId: getPortfolioByID
+      summary: Retrieve a given portfolio by its portfolio ID.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  portfolio:
+                    $ref: '#/components/schemas/Portfolio'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/activities:
+    get:
+      operationId: listActivities
+      summary: List all activities associated with a given entity.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: symbols
+          in: query
+          description: Filter by list of currencies
+          schema:
+            type: array
+            items:
+              type: string
+        - name: categories
+          in: query
+          description: Filter by list of activity categories [order, transaction, account, admin, allocation]
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ OTHER_ACTIVITY_CATEGORY, ACTIVITY_CATEGORY_ORDER, ACTIVITY_CATEGORY_TRANSACTION, ACTIVITY_CATEGORY_ACCOUNT, ACTIVITY_CATEGORY_ADMIN, ACTIVITY_CATEGORY_ALLOCATION ]
+        - name: statuses
+          in: query
+          description: Filter by list of statuses
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ OTHER_ACTIVITY_STATUS, ACTIVITY_STATUS_CANCELLED, ACTIVITY_STATUS_PROCESSING, ACTIVITY_STATUS_COMPLETED, ACTIVITY_STATUS_EXPIRED, ACTIVITY_STATUS_REJECTED, ACTIVITY_STATUS_FAILED ]
+        - name: start_time
+          in: query
+          description: Filter created time by start date
+          schema:
+            type: string
+        - name: end_time
+          in: query
+          description: Filter created time by end date
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - activities
+                  - pagination
+                properties:
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Activity'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/activities/{activityId}:
+    get:
+      operationId: getActivityByID
+      summary: List all activities associated with a given entity.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio to retrieve activity for
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: activityId
+          in: path
+          description: Id of the activity to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activity:
+                    $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/address_book:
+    get:
+      operationId: getAddressBook
+      summary: Gets a list of address book addresses.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: currency_symbol
+          in: query
+          description: Cryptocurrency symbol -- if nothing is passed, all addresses are returned
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Query string that matches the address name
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - addresses
+                  - pagination
+                  - name
+                properties:
+                  addresses:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - currency_symbol
+                        - address
+                        - address_identifier
+                        - account_identifier_name
+                        - state
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: UUID identifying this address book entry
+                        currency_symbol:
+                          type: string
+                          description: Currency symbol
+                        name:
+                          type: string
+                          description: Name for this address book entry
+                        address:
+                          type: string
+                          description: Cryptocurrency address
+                        account_identifier:
+                          type: string
+                          description: Memo or destination tag for currencies which support them
+                        account_identifier_name:
+                          type: string
+                          description: Name of the account identifier.
+                        state:
+                          type: string
+                          description: State of this address book entry
+                        explorer_link:
+                          type: string
+                          format: uri
+                          description: Link to a blockchain explorer
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+    post:
+      operationId: createAddressBookEntry
+      summary: Creates an entry for a portfolio's trusted addresses.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - address
+                - currency_symbol
+                - name
+                - portfolio_id
+              properties:
+                address:
+                  type: string
+                  description: Crypto address to add
+                currency_symbol:
+                  type: string
+                  description: Currency symbol of address to add
+                name:
+                  type: string
+                  description: Name of address book entry
+                account_identifier:
+                  type: string
+                  description: Account Identifier (memo/destination tag)
+                portfolio_id:
+                  type: string
+                  format: uuid
+                  description: Portfolio ID
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - activity_type
+                  - num_approvals_remaining
+                  - activity_id
+                properties:
+                  activity_type:
+                    type: string
+                    enum: [ ACTIVITY_TYPE_GOVERNANCE_VOTE, ACTIVITY_TYPE_INVITATION, ACTIVITY_TYPE_WALLET_CHANGE, ACTIVITY_TYPE_API_KEY_CHANGE, ACTIVITY_TYPE_SETTINGS_CHANGE, ACTIVITY_TYPE_BILLING_PREFERENCE_CHANGE, ACTIVITY_TYPE_PAYMENT_METHOD_CHANGE, ACTIVITY_TYPE_WITHDRAWAL, ACTIVITY_TYPE_DEPOSIT, ACTIVITY_TYPE_CREATE_WALLET, ACTIVITY_TYPE_REMOVE_WALLET, ACTIVITY_TYPE_UPDATE_WALLET, ACTIVITY_TYPE_CAST_VOTE, ACTIVITY_TYPE_ENABLE_VOTING, ACTIVITY_TYPE_STAKE ACTIVITY_TYPE_UNSTAKE, ACTIVITY_TYPE_CHANGE_VALIDATOR, ACTIVITY_TYPE_RESTAKE, ACTIVITY_TYPE_ADDRESS_BOOK, ACTIVITY_TYPE_TEAM_MEMBERS, ACTIVITY_TYPE_BILLING, ACTIVITY_TYPE_SECURITY, ACTIVITY_TYPE_API, ACTIVITY_TYPE_SETTINGS, ACTIVITY_TYPE_SMART_CONTRACT ]
+                  num_approvals_remaining:
+                    type: integer
+                    format: int32
+                  activity_id:
+                    type: string
+                    format: uuid
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/balances:
+    get:
+      operationId: listPortfolioBalances
+      summary: Gets a list of address book addresses.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: symbols
+          in: query
+          description: A list of symbols by which to filter the response
+          schema:
+            type: array
+            items:
+              type: string
+        - name: balance_type
+          in: query
+          description: A type by which to filter balances
+          schema:
+            type: string
+            enum: [ TRADING_BALANCES, VAULT_BALANCES, TOTAL_BALANCES ]
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balances:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Balance'
+                  type:
+                    type: string
+                    enum: [ TRADING_BALANCES, VAULT_BALANCES, TOTAL_BALANCES ]
+                  trading_balances:
+                    type: object
+                    properties:
+                      total:
+                        type: string
+                      holds:
+                        type: string
+                  vault_balances:
+                    type: object
+                    properties:
+                      total:
+                        type: string
+                      holds:
+                        type: string
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/commission:
+    get:
+      operationId: getPortfolioCommission
+      summary: Query balance for a specific wallet.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commission:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        description: Hardcode type to all_in. When we support cost+, we will have cost_plus type
+                      rate:
+                        type: string
+                        description: Commission rate (in whole percentage. Commission of 15bps is "0.0015")
+                      trading_volume:
+                        type: string
+                        description: Average 30 days over past 3 months (e.g. 90 days divided by 3)
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/credit:
+    get:
+      operationId: getPortfolioCreditInformation
+      summary: Retrieve a portfolio's post-trade credit information.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post_trade_credit:
+                    type: object
+                    properties:
+                      portfolio_id:
+                        type: string
+                        format: uuid
+                        description: The unique ID of the portfolio
+                      currency:
+                        type: string
+                        description: The currency symbol credit is denoted in
+                      limit:
+                        type: string
+                        description: The maximum credit limit
+                      utilized:
+                        type: string
+                        description: The amount of credit used
+                      available:
+                        type: string
+                        description: The amount of credit available
+                      frozen:
+                        type: boolean
+                        description: Whether or not a portfolio is frozen due to balance outstanding or other reason
+                      frozen_reason:
+                        type: string
+                        description: The reason why the portfolio is frozen
+                      amounts_due:
+                        type: object
+                        properties:
+                          currency:
+                            type: string
+                            description: The currency this loan is due in
+                          amount:
+                            type: string
+                            description: The amount due
+                          due_date:
+                            type: string
+                            format: date-time
+                            description: The date this settlement is due, expressed in UTC
+                      enabled:
+                        type: boolean
+                        description: Whether the portfolio has credit enabled
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/products:
+    get:
+      operationId: listPortfolioProducts
+      summary: List tradable products for a given portfolio.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: The product ID, written as BASE-QUOTE
+                        base_increment:
+                          type: string
+                          description: The smallest permitted unit of denomination for the base asset (varies by product)
+                        quote_increment:
+                          type: string
+                          description: The smallest permitted unit of denomination for the quote asset (varies by product)
+                        base_min_size:
+                          type: string
+                          description: The minimum size (in base asset units) for which an order can be placed
+                        quote_min_size:
+                          type: string
+                          description: The minimum size (in quote asset units) for which an order can be placed
+                        base_max_size:
+                          type: string
+                          description: The maximum size (in base asset units) for which an order can be placed
+                        quote_max_size:
+                          type: string
+                          description: The maximum size (in quote asset units) for which an order can be placed
+                        permissions:
+                          type: array
+                          items:
+                            type: string
+                          description: Permissions given to the user for a product
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/transactions:
+    get:
+      operationId: listPortfolioTransactions
+      summary: List transactions for a given portfolio (only transactions that affect balances are accessible).
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: symbols
+          in: query
+          description: A case insensitive list of symbols by which to filter the response
+          schema:
+            type: array
+            items:
+              type: string
+        - name: types
+          in: query
+          description: The transaction types by which to filter the response
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ TRANSACTION_TYPE_UNKNOWN, DEPOSIT, WITHDRAWAL, INTERNAL_DEPOSIT, INTERNAL_WITHDRAWAL, SWEEP_DEPOSIT, SWEEP_WITHDRAWAL, PROXY_DEPOSIT, PROXY_WITHDRAWAL, BILLING_WITHDRAWAL, REWARD, COINBASE_REFUND, TRANSACTION_TYPE_OTHER, WITHDRAWAL_ADJUSTMENT, DEPOSIT_ADJUSTMENT, KEY_REGISTRATION, DELEGATION, UNDELEGATION, RESTAKE, COMPLETE_UNBONDING, WITHDRAW_UNBONDED, STAKE_ACCOUNT_CREATE, CHANGE_VALIDATOR, STAKE, UNSTAKE, REMOVE_AUTHORIZED_PARTY, STAKE_AUTHORIZE_WITH_SEED, SLASH, COINBASE_DEPOSIT, CONVERSION ]
+        - name: start_time
+          in: query
+          description: UTC timestamp from which to filter the response (inclusive, ISO-8601 format)
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          description: UTC timestamp until which to filter the response (exclusive, ISO-8601 format)
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/transactions/{transactionId}:
+    get:
+      operationId: getTransactionById
+      summary: List transactions for a given portfolio (only transactions that affect balances are accessible).
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: transactionId
+          in: path
+          description: The transaction ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction:
+                    $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/users:
+    get:
+      operationId: listPortfolioUsers
+      summary: List all users associated with a given portfolio.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PortfolioUser'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets:
+    get:
+      operationId: listPortfolioWallets
+      summary: List all wallets associated with a given portfolio.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The ID of the portfolio
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          description: The wallet type.
+          required: true
+          schema:
+            type: string
+            enum: [ VAULT, TRADING ]
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+        - name: symbols
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wallets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        symbol:
+                          type: string
+                        type:
+                          type: string
+                          enum: [ VAULT, TRADING ]
+                        created_at:
+                          type: string
+                          format: date-time
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+    post:
+      operationId: createWallet
+      summary: Create a wallet.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The ID of the portfolio
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - portfolio_id
+                - name
+                - symbol
+              properties:
+                portfolio_id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                symbol:
+                  type: string
+                wallet_type:
+                  type: string
+                  enum: [ VAULT, TRADING ]
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activity_id:
+                    type: string
+                  name:
+                    type: string
+                  symbol:
+                    type: string
+                  wallet_type:
+                    type: string
+                    enum: [ VAULT, TRADING ]
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets/{walletId}:
+    get:
+      operationId: getWalletByID
+      summary: Retrieve a specific wallet by Wallet ID.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: walletId
+          in: path
+          description: Wallet ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wallet:
+                    type: object
+                    properties:
+                      activity_id:
+                        type: string
+                      name:
+                        type: string
+                      symbol:
+                        type: string
+                      wallet_type:
+                        type: string
+                        enum: [ VAULT, TRADING ]
+                      created_at:
+                        type: string
+                        format: date-time
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets/{walletId}/balance:
+    get:
+      operationId: getWalletBalance
+      summary: Query balance for a specific wallet.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: Portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: walletId
+          in: path
+          description: Wallet ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    $ref: '#/components/schemas/Balance'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets/{walletId}/conversion:
+    post:
+      operationId: createConversion
+      summary: Perform a conversion between 2 assets.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The ID of the portfolio
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: walletId
+          in: path
+          description: The wallet ID that the conversion will originate from
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - portfolio_id
+                - wallet_id
+                - amount
+                - destination
+                - idempotency_key
+                - source_symbol
+                - destination_symbol
+              properties:
+                portfolio_id:
+                  type: string
+                  format: uuid
+                  description: The ID of the portfolio
+                wallet_id:
+                  type: string
+                  format: uuid
+                  description: The wallet ID that the conversion will originate from
+                amount:
+                  type: string
+                  description: The amount in whole units to convert
+                destination:
+                  type: string
+                  format: uuid
+                  description: The UUID of the destination wallet
+                idempotency_key:
+                  type: string
+                  description: The idempotency key associated with this conversion
+                source_symbol:
+                  type: string
+                  description: The currency symbol to convert from
+                destination_symbol:
+                  type: string
+                  description: The currency symbol to convert to
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activity_id:
+                    type: string
+                    format: uuid
+                    description: The activity ID for the conversion
+                  source_symbol:
+                    type: string
+                    description: The currency symbol to convert from
+                  destination_symbol:
+                    type: string
+                    description: The currency symbol to convert to
+                  amount:
+                    type: string
+                    description: The amount in whole units to convert
+                  destination:
+                    type: string
+                    format: uuid
+                    description: The UUID of the destination wallet
+                  source:
+                    type: string
+                    format: uuid
+                    description: The UUID of the source wallet
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets/{walletId}/deposit_instructions:
+    get:
+      operationId: getWalletDepositInstructions
+      summary: Retrieve a specific wallet's deposit instructions.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The portfolio ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: walletId
+          in: path
+          description: The wallet ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: deposit_type
+          in: query
+          description: The deposit type.
+          schema:
+            type: string
+            enum: [ CRYPTO, WIRE, SEN, SWIFT ]
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  crypto_instructions:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: The ID of the wallet
+                      name:
+                        type: string
+                        description: The name of the wallet
+                      type:
+                        type: string
+                        enum: [ CRYPTO, WIRE, SEN, SWIFT ]
+                      address:
+                        type: string
+                        description: The address of the wallet
+                      account_identifier:
+                        type: string
+                        description: The tag/memo of the address, if applicable -- required for certain assets (e.g. XRP, XLM, etc.)
+                      account_identifier_name:
+                        type: string
+                        description: The blockchain network's terminology for the unique identifier used to identify the receiver of the transaction (different blockchain networks use different names, such as destination_tag or memo)
+                  fiat_instructions:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      type:
+                        type: string
+                        enum: [ CRYPTO, WIRE, SEN, SWIFT ]
+                      account_number:
+                        type: string
+                      routing_number:
+                        type: string
+                      reference_code:
+                        type: string
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets/{walletId}/transactions:
+    post:
+      operationId: listWalletTransactions
+      summary: Retrieve transactions for a given wallet (only transactions that affect balances are accessible).
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The ID of the portfolio
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: walletId
+          in: path
+          description: The wallet ID that the conversion will originate from
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: types
+          in: query
+          description: The transaction types by which to filter the response
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ TRANSACTION_TYPE_UNKNOWN, DEPOSIT, WITHDRAWAL, INTERNAL_DEPOSIT, INTERNAL_WITHDRAWAL, SWEEP_DEPOSIT, SWEEP_WITHDRAWAL, PROXY_DEPOSIT, PROXY_WITHDRAWAL, BILLING_WITHDRAWAL, REWARD, COINBASE_REFUND, TRANSACTION_TYPE_OTHER, WITHDRAWAL_ADJUSTMENT, DEPOSIT_ADJUSTMENT, KEY_REGISTRATION, DELEGATION, UNDELEGATION, RESTAKE, COMPLETE_UNBONDING, WITHDRAW_UNBONDED, STAKE_ACCOUNT_CREATE, CHANGE_VALIDATOR, STAKE, UNSTAKE, REMOVE_AUTHORIZED_PARTY, STAKE_AUTHORIZE_WITH_SEED, SLASH, COINBASE_DEPOSIT, CONVERSION ]
+        - name: start_time
+          in: query
+          description: UTC timestamp from which to filter the response (inclusive, ISO-8601 format)
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          description: UTC timestamp until which to filter the response (exclusive, ISO-8601 format)
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets/{walletId}/transfers:
+    post:
+      operationId: createTransfer
+      summary: Create a wallet transfer.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The ID of the portfolio
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: walletId
+          in: path
+          description: The wallet ID that the conversion will originate from
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - portfolio_id
+                - wallet_id
+                - amount
+                - destination
+                - idempotency_key
+                - currency_symbol
+              properties:
+                portfolio_id:
+                  type: string
+                  format: uuid
+                  description: The portfolio ID
+                wallet_id:
+                  type: string
+                  format: uuid
+                  description: The wallet ID that the transfer will originate from
+                amount:
+                  type: string
+                  description: The amount in whole units to send
+                destination:
+                  type: string
+                  format: uuid
+                  description: The UUID of the destination wallet
+                idempotency_key:
+                  type: string
+                  description: The idempotency key associated with this transfer
+                currency_symbol:
+                  type: string
+                  description: The currency symbol to transfer
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activity_id:
+                    type: string
+                    description: The activity ID for the transfer
+                  approval_url:
+                    type: string
+                    description: A URL to the activity associated with this transfer for approval
+                  symbol:
+                    type: string
+                    description: The currency symbol of the transfer
+                  amount:
+                    type: string
+                    description: The amount of the transfer
+                  fee:
+                    type: string
+                    description: The network fee associated with the transfer
+                  destination_address:
+                    type: string
+                    description: The destination address of the transfer
+                  destination_type:
+                    type: string
+                    description: The destination type of the transfer
+                  source_address:
+                    type: string
+                    description: The source address used for the transfer
+                  source_type:
+                    type: string
+                    description: The source type used for the transfer
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolioId}/wallets/{walletId}/withdrawals:
+    post:
+      operationId: createWithdrawal
+      summary: Create a withdrawal.
+      parameters:
+        - name: portfolioId
+          in: path
+          description: The ID of the portfolio
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: walletId
+          in: path
+          description: The wallet ID that the conversion will originate from
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - portfolio_id
+                - wallet_id
+                - amount
+                - destination
+                - idempotency_key
+                - currency_symbol
+              properties:
+                portfolio_id:
+                  type: string
+                  format: uuid
+                  description: The portfolio ID
+                wallet_id:
+                  type: string
+                  format: uuid
+                  description: The wallet ID that the transfer will originate from
+                amount:
+                  type: string
+                  description: The amount in whole units to send
+                destination:
+                  type: string
+                  format: uuid
+                  description: The UUID of the destination wallet
+                idempotency_key:
+                  type: string
+                  description: The idempotency key associated with this transfer
+                currency_symbol:
+                  type: string
+                  description: The currency symbol to transfer
+                payment_method:
+                  type: object
+                  properties:
+                    payment_method_id:
+                      type: string
+                blockchain_address:
+                  type: object
+                  properties:
+                    address:
+                      type: string
+                    account_identifier:
+                      type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activity_id:
+                    type: string
+                    description: The activity ID associated with the withdrawal
+                  approval_url:
+                    type: string
+                    description: A URL to the activity in the Prime application
+                  symbol:
+                    type: string
+                    description: The currency symbol associated with the withdrawal
+                  amount:
+                    type: string
+                    description: The amount of the withdrawal
+                  fee:
+                    type: string
+                    description: The network fee associated with the withdrawal
+                  destination_type:
+                    type: string
+                    description: The destination type used for the withdrawal
+                  source_type:
+                    type: string
+                    description: The source type used for the withdrawal
+                  blockchain_destination:
+                    type: object
+                    properties:
+                      address:
+                        type: string
+                      account_identifier:
+                        type: string
+                  blockchain_source:
+                    type: object
+                    properties:
+                      address:
+                        type: string
+                      account_identifier:
+                        type: string
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+
+components:
+  securitySchemes:
+    AccessKey:
+      type: apiKey
+      in: header
+      name: X-CB-ACCESS-KEY
+    AccessPassphrase:
+      type: apiKey
+      in: header
+      name: X-CB-ACCESS-PASSPHRASE
+    AccessSignature:
+      type: apiKey
+      in: header
+      name: X-CB-ACCESS-SIGNATURE
+    AccessTimestamp:
+      type: apiKey
+      in: header
+      name: X-CB-ACCESS-TIMESTAMP
+
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      description: Cursor used for pagination (last consumed record)
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      description: Number of items to retrieve
+      schema:
+        type: integer
+        format: int32
+    SortDirection:
+      name: sort_direction
+      in: query
+      description: Sorting order
+      schema:
+        type: string
+        enum: [ DESC, ASC ]
+
+  schemas:
+    ErrorBadRequest:
+      description: Invalid request format
+    ErrorUnauthorized:
+      description: Invalid API Key
+    ErrorForbidden:
+      description: You do not have access to the requested resource
+    ErrorNotFound:
+      description: Requested resource could not be found
+    ErrorInternalServerError:
+      description: Server-side error occurred
+
+    Pagination:
+      type: object
+      required:
+        - next_cursor
+        - sort_direction
+        - has_next
+      properties:
+        next_cursor:
+          type: string
+          description: Cursor to navigate to next page
+        sort_direction:
+          type: string
+          enum: [ DESC, ASC ]
+        has_next:
+          type: boolean
+          description: A boolean value indicating whether there are more items to paginate through
+
+    Activity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: A unique id for the account activity
+        reference_id:
+          type: string
+          format: uuid
+          description: A reference for orders and transactions, n/a for other category types
+        category:
+          type: string
+          enum: [ OTHER_ACTIVITY_CATEGORY, ACTIVITY_CATEGORY_ORDER, ACTIVITY_CATEGORY_TRANSACTION, ACTIVITY_CATEGORY_ACCOUNT, ACTIVITY_CATEGORY_ADMIN, ACTIVITY_CATEGORY_ALLOCATION ]
+        type:
+          type: string
+          enum: [ OTHER_ACTIVITY_TYPE, ACTIVITY_TYPE_LIMIT_ORDER, ACTIVITY_TYPE_MARKET_ORDER, ACTIVITY_TYPE_TWAP_ORDER, ACTIVITY_TYPE_DEPOSIT, ACTIVITY_TYPE_WITHDRAWAL, ACTIVITY_TYPE_INTERNAL_TRANSFER, ACTIVITY_TYPE_CREATE_WALLET, ACTIVITY_TYPE_REMOVE_WALLET, ACTIVITY_TYPE_UPDATE_WALLET, ACTIVITY_TYPE_CAST_VOTE, ACTIVITY_TYPE_ENABLE_VOTING, ACTIVITY_TYPE_STAKE, ACTIVITY_TYPE_UNSTAKE, ACTIVITY_TYPE_CHANGE_VALIDATOR, ACTIVITY_TYPE_RESTAKE, ACTIVITY_TYPE_ADDRESS_BOOK, ACTIVITY_TYPE_TEAM_MEMBERS, ACTIVITY_TYPE_BILLING, ACTIVITY_TYPE_SECURITY, ACTIVITY_TYPE_API, ACTIVITY_TYPE_SETTINGS, ACTIVITY_TYPE_SMART_CONTRACT, ACTIVITY_TYPE_ALLOCATION_IN, ACTIVITY_TYPE_ALLOCATION_OUT, ACTIVITY_TYPE_ALLOCATION_IN_REVERSAL, ACTIVITY_TYPE_ALLOCATION_OUT_REVERSAL, ACTIVITY_TYPE_CONVERSION ]
+        secondary_type:
+          type: string
+          enum: [ NO_SECONDARY_TYPE, ACTIVITY_SECONDARY_TYPE_BUY, ACTIVITY_SECONDARY_TYPE_SELL, ACTIVITY_SECONDARY_TYPE_INTERNAL_TRANSFER, ACTIVITY_SECONDARY_TYPE_SWEEP_TRANSFER_TYPE ]
+        status:
+          type: string
+          enum: [ OTHER_ACTIVITY_STATUS, ACTIVITY_STATUS_CANCELLED, ACTIVITY_STATUS_PROCESSING, ACTIVITY_STATUS_COMPLETED, ACTIVITY_STATUS_EXPIRED, ACTIVITY_STATUS_REJECTED, ACTIVITY_STATUS_FAILED ]
+        created_by:
+          type: string
+          format: uuid
+          description: Id of user who created the activity
+        title:
+          type: string
+          description: Title of the activity
+        description:
+          type: string
+          description: Description detail of the activity
+        user_actions:
+          type: array
+          description: Actions related to the Activity
+          items:
+            type: object
+            properties:
+              action:
+                type: string
+                enum: [ OTHER_ACTION, ACTION_APPROVE, ACTION_REJECT, ACTION_INITIATE, ACTION_CANCEL ]
+              user_id:
+                type: string
+                format: uuid
+                description: Id of the user who executed the action
+              timestamp:
+                type: string
+                description: Time the action was taken
+        transactions_metadata:
+          type: object
+          properties:
+            consensus:
+              $ref: '#/components/schemas/Consensus'
+        account_metadata:
+          type: object
+          properties:
+            consensus:
+              $ref: '#/components/schemas/Consensus'
+        orders_metadata:
+          type: object
+        symbols:
+          type: array
+          description: List of currencies included in an activity
+          items:
+            type: string
+        created_at:
+          type: string
+          description: Time activity was created at
+        updated_at:
+          type: string
+          description: Time for latest status update of account activity
+    Balance:
+      type: object
+      properties:
+        symbol:
+          type: string
+          description: The display symbol for the asset
+        amount:
+          type: string
+          description: The total amount in whole units with full precision
+        holds:
+          type: string
+          description: Amount that is currently held in obligation to an open order's position or a pending withdrawal
+    Consensus:
+      type: object
+      properties:
+        approval_deadline:
+          type: string
+          description: Deadline for approval of an activity
+        has_passed_consensus:
+          type: boolean
+          description: If activity has passed consensus threshold
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique order ID generated by Coinbase
+        user_id:
+          type: string
+          description: The ID of the user that created the order
+        portfolio_id:
+          type: string
+          format: uuid
+          description: The ID of the portfolio that owns the order
+        product_id:
+          type: string
+          description: The ID of the product being traded by the order
+        side:
+          type: string
+          enum: [ BUY, SELL ]
+        client_order_id:
+          type: string
+          format: uuid
+          description: A client-generated order ID used for reference purposes (note, order will be rejected if this ID is not unique among all currently active orders)
+        type:
+          type: string
+          enum: [ MARKET, LIMIT, TWAP ]
+        base_quantity:
+          type: string
+          description: Order size in base asset units (either base_quantity or quote_value is required)
+        quote_value:
+          type: string
+          description: Order size in quote asset units, i.e. the amount the user wants to spend (when buying) or receive (when selling); the quantity in base units will be determined based on the market liquidity and indicated quote_value. Either base_quantity or quote_value is required
+        limit_price:
+          type: string
+          description: The limit price (required for limit orders)
+        start_time:
+          type: string
+          format: date-time
+          description: The start time of the order in UTC (only applies to TWAP orders.)
+        expiry_time:
+          type: string
+          format: date-time
+          description: The expiry time of the order in UTC (applies to TWAP orders and limit orders with time_in_force set to GTD)
+        status:
+          type: string
+          enum: [ OPEN, FILLED, CANCELLED, EXPIRED, FAILED, PENDING ]
+        time_in_force:
+          type: string
+          enum: [ GOOD_UNTIL_DATE_TIME, GOOD_UNTIL_CANCELLED, IMMEDIATE_OR_CANCEL ]
+        created_at:
+          type: string
+          format: date-time
+          description: The order creation time as a UTC timestamp
+        filled_quantity:
+          type: string
+          description: Size filled (in base asset units)
+        average_filled_price:
+          type: string
+          description: Indicates the average filled_price
+        commission:
+          type: string
+          description: Total commission paid on this order (in quote asset units) -- only applicable for partially- or fully-filled orders
+    OrderPreview:
+      type: object
+      properties:
+        portfolio_id:
+          type: string
+          format: uuid
+          description: The ID of the portfolio that owns the order
+        product_id:
+          type: string
+          description: The ID of the product being traded by the order
+        side:
+          type: string
+          enum: [ BUY, SELL ]
+        type:
+          type: string
+          enum: [ MARKET, LIMIT, TWAP ]
+        base_quantity:
+          type: string
+          description: Order size in base asset units (either base_quantity or quote_value is required)
+        quote_value:
+          type: string
+          description: Order size in quote asset units, i.e. the amount the user wants to spend (when buying) or receive (when selling); the quantity in base units will be determined based on the market liquidity and indicated quote_value. Either base_quantity or quote_value is required
+        limit_price:
+          type: string
+          description: The limit price (required for limit orders)
+        start_time:
+          type: string
+          format: date-time
+          description: The start time of the order in UTC (only applies to TWAP orders.)
+        expiry_time:
+          type: string
+          format: date-time
+          description: The expiry time of the order in UTC (applies to TWAP orders and limit orders with time_in_force set to GTD)
+        time_in_force:
+          type: string
+          enum: [ GOOD_UNTIL_DATE_TIME, GOOD_UNTIL_CANCELLED, IMMEDIATE_OR_CANCEL ]
+        commission:
+          type: string
+          description: Total commission paid on this order (in quote asset units) -- only applicable for partially- or fully-filled orders
+        slippage:
+          type: string
+          description: How much slippage is expected
+        best_bid:
+          type: string
+          description: Current best bid for order book
+        best_ask:
+          type: string
+          description: Current best ask for order book
+        average_filled_price:
+          type: string
+          description: Indicate expected average filled price based on the current order book
+        order_total:
+          type: string
+          description: Order quantity + fees
+    Portfolio:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the portfolio
+        name:
+          type: string
+          description: The name of the portfolio
+        entity_id:
+          type: string
+          format: uuid
+          description: The ID of the entity to which the portfolio is associated
+        organization_id:
+          type: string
+          format: uuid
+          description: The ID of the organization to which the portfolio is associated
+    PortfolioUser:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            portfolio_id:
+              type: string
+              format: uuid
+              description: The portfolio to which this user and associated permissions are identified
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the transaction
+        wallet_id:
+          type: string
+          format: uuid
+          description: The wallet ID of the transaction
+        portfolio_id:
+          type: string
+          format: uuid
+          description: The portfolio ID of the transaction
+        type:
+          type: string
+          enum: [ TRANSACTION_TYPE_UNKNOWN, DEPOSIT, WITHDRAWAL, INTERNAL_DEPOSIT, INTERNAL_WITHDRAWAL, SWEEP_DEPOSIT, SWEEP_WITHDRAWAL, PROXY_DEPOSIT, PROXY_WITHDRAWAL, BILLING_WITHDRAWAL, REWARD, COINBASE_REFUND, TRANSACTION_TYPE_OTHER, WITHDRAWAL_ADJUSTMENT, DEPOSIT_ADJUSTMENT, KEY_REGISTRATION, DELEGATION, UNDELEGATION, RESTAKE, COMPLETE_UNBONDING, WITHDRAW_UNBONDED, STAKE_ACCOUNT_CREATE, CHANGE_VALIDATOR, STAKE, UNSTAKE, REMOVE_AUTHORIZED_PARTY, STAKE_AUTHORIZE_WITH_SEED, SLASH, COINBASE_DEPOSIT, CONVERSION ]
+        status:
+          type: string
+          enum: [ TRANSACTION_CREATED, TRANSACTION_REQUESTED, TRANSACTION_APPROVED, TRANSACTION_GASSING, TRANSACTION_GASSED, TRANSACTION_PROVISIONED, TRANSACTION_PLANNED, TRANSACTION_PROCESSING, TRANSACTION_RESTORED, TRANSACTION_DONE, TRANSACTION_IMPORT_PENDING, TRANSACTION_IMPORTED, TRANSACTION_CANCELLED, TRANSACTION_REJECTED, TRANSACTION_DELAYED, TRANSACTION_RETRIED, TRANSACTION_FAILED, TRANSACTION_EXPIRED, TRANSACTION_BROADCASTING, OTHER_TRANSACTION_STATUS ]
+        symbol:
+          type: string
+          description: The asset symbol
+        created_at:
+          type: string
+          format: date-time
+          description: The transaction creation time (as a UTC timestamp)
+        completed_at:
+          type: string
+          format: date-time
+          description: The transaction completion time (as a UTC timestamp)
+        amount:
+          type: string
+          description: The transaction amount in whole units
+        transfer_from:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [ PAYMENT_METHOD, WALLET, ADDRESS OTHER, MULTIPLE_ADDRESSES ]
+            value:
+              type: string
+              description: The value of the transfer location, payment method ID, wallet ID or crypto address
+        transfer_to:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [ PAYMENT_METHOD, WALLET, ADDRESS OTHER, MULTIPLE_ADDRESSES ]
+            value:
+              type: string
+              description: The value of the transfer location, payment method ID, wallet ID or crypto address
+        network_fees:
+          type: string
+          description: The blockchain network fees (in whole units) required in order to broadcast the transaction
+        fees:
+          type: string
+          description: The fees that the customer paid for the transaction (in whole units)
+        fee_symbol:
+          type: string
+          description: The asset in which fees will be paid
+        blockchain_ids:
+          type: array
+          items:
+            type: string
+          description: The cryptocurrency network transaction hashes/IDs generated upon broadcast
+        transaction_id:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8}$'
+          description: The 8 character alphanumeric short form id for the transaction
+        destination_symbol:
+          type: string
+          description: The destination asset symbol
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the user
+        name:
+          type: string
+          description: The name of the user
+        email:
+          type: string
+          format: email
+          description: The email of the user
+        entity_id:
+          type: string
+          format: uuid
+          description: The entity to which this user and associated permissions are identified
+        role:
+          type: string
+          enum: [ AUDITOR, SIGNATORY, ADMIN, INITIATOR, REVIEWER, TRADER, FULL_TRADER, TEAM_MANAGER, APPROVER ]
