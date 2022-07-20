@@ -200,13 +200,13 @@ paths:
           $ref: '#/components/schemas/ErrorNotFound'
         '500':
           $ref: '#/components/schemas/ErrorInternalServerError'
-  /portfolios/{portfolio_id}/activities/{activityId}:
+  /portfolios/{portfolio_id}/activities/{activity_id}:
     get:
       operationId: getActivityByID
       summary: List all activities associated with a given entity.
       parameters:
         - $ref: '#/components/parameters/portfolio_id'
-        - name: activityId
+        - name: activity_id
           in: path
           description: Id of the activity to retrieve
           required: true
@@ -527,6 +527,361 @@ paths:
                       enabled:
                         type: boolean
                         description: Whether the portfolio has credit enabled
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolio_id}/open_orders:
+    get:
+      operationId: listOpenOrders
+      summary: List all currently open orders.
+      parameters:
+        - $ref: '#/components/parameters/portfolio_id'
+        - name: product_ids
+          in: query
+          description: List of products by which to filter the response.
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+        - name: start_date
+          in: query
+          description: A start date for the orders to be queried from.
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: order_side
+          in: query
+          description: An order side to filter on.
+          schema:
+            type: string
+            enum: [ BUY, SELL ]
+        - name: end_date
+          in: query
+          description: An end date for the orders to be queried from.
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolio_id}/order:
+    post:
+      operationId: createOrder
+      summary: Create an order.
+      parameters:
+        - $ref: '#/components/parameters/portfolio_id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - portfolio_id
+                - product_id
+                - side
+                - client_order_id
+                - type
+              properties:
+                portfolio_id:
+                  type: string
+                  format: uuid
+                product_id:
+                  type: string
+                side:
+                  type: string
+                  enum: [ BUY, SELL ]
+                client_order_id:
+                  type: string
+                  format: uuid
+                type:
+                  type: string
+                  enum: [ MARKET, LIMIT, TWAP ]
+                base_quantity:
+                  type: string
+                quote_value:
+                  type: string
+                start_time:
+                  type: string
+                  format: date-time
+                expiry_time:
+                  type: string
+                  format: date-time
+                time_in_force:
+                  type: string
+                  enum: [ GOOD_UNTIL_DATE_TIME, GOOD_UNTIL_CANCELLED, IMMEDIATE_OR_CANCEL ]
+                stp_id:
+                  type: string
+                display_quote_size:
+                  type: string
+                display_base_size:
+                  type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_id:
+                    type: string
+                    format: uuid
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolio_id}/orders:
+    get:
+      operationId: listPortfolioOrders
+      summary: List historical orders for a given portfolio.
+      parameters:
+        - $ref: '#/components/parameters/portfolio_id'
+        - name: order_statuses
+          in: query
+          description: List of statuses by which to filter the response.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ OPEN, FILLED, CANCELLED, EXPIRED, FAILED, PENDING ]
+        - name: product_ids
+          in: query
+          description: List of products by which to filter the response.
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: product_type
+          in: query
+          description: Order type by which to filter the response.
+          schema:
+            type: string
+            enum: [ MARKET, LIMIT, TWAP ]
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+        - name: order_side
+          in: query
+          description: An order side to filter on.
+          schema:
+            type: string
+            enum: [ BUY, SELL ]
+        - name: start_date
+          in: query
+          description: A start date for the orders to be queried from.
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: An end date for the orders to be queried from.
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolio_id}/orders/{order_id}:
+    get:
+      operationId: getOrderByID
+      summary: Retrieve an order by order ID.
+      parameters:
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/order_id'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolio_id}/orders/{order_id}/cancel:
+    post:
+      operationId: cancelOrder
+      summary: Cancel an order. (Filled orders cannot be canceled.)
+      parameters:
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/order_id'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolio_id}/orders/{order_id}/fills:
+    post:
+      operationId: getOrderFills
+      summary: Retrieve fills on a given order.
+      parameters:
+        - $ref: '#/components/parameters/portfolio_id'
+        - $ref: '#/components/parameters/order_id'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Fill'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/schemas/ErrorBadRequest'
+        '401':
+          $ref: '#/components/schemas/ErrorUnauthorized'
+        '402':
+          $ref: '#/components/schemas/ErrorForbidden'
+        '404':
+          $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          $ref: '#/components/schemas/ErrorInternalServerError'
+  /portfolios/{portfolio_id}/order_preview:
+    post:
+      operationId: getOrderPreview
+      summary: Retrieve an order preview.
+      parameters:
+        - $ref: '#/components/parameters/portfolio_id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - portfolio_id
+                - product_id
+                - side
+                - type
+              properties:
+                portfolio_id:
+                  type: string
+                  format: uuid
+                product_id:
+                  type: string
+                side:
+                  type: string
+                  enum: [ BUY, SELL ]
+                type:
+                  type: string
+                  enum: [ MARKET, LIMIT, TWAP ]
+                base_quantity:
+                  type: string
+                quote_value:
+                  type: string
+                start_time:
+                  type: string
+                  format: date-time
+                expiry_time:
+                  type: string
+                  format: date-time
+                time_in_force:
+                  type: string
+                  enum: [ GOOD_UNTIL_DATE_TIME, GOOD_UNTIL_CANCELLED, IMMEDIATE_OR_CANCEL ]
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPreview'
         '400':
           $ref: '#/components/schemas/ErrorBadRequest'
         '401':
@@ -1332,6 +1687,14 @@ components:
         type: string
         format: uuid
       example: '2c521d6c-1cfb-4371-bf9c-5a42938d3e75'
+    order_id:
+      name: order_id
+      in: path
+      description: The order ID
+      required: true
+      schema:
+        type: string
+        format: uuid
     payment_method_id:
       name: payment_method_id
       in: path
@@ -1531,6 +1894,42 @@ components:
         has_passed_consensus:
           type: boolean
           description: If activity has passed consensus threshold
+    Fill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the fill
+        order_id:
+          type: string
+          format: uuid
+          description: The order ID of the fill
+        product_id:
+          type: string
+          description: The product ID of the fill
+        side:
+          type: string
+          enum: [ BUY, SELL ]
+        filled_quantity:
+          type: string
+          description: Filled size (in base asset units)
+        filled_value:
+          type: string
+          description: Filled value (in quote asset units)
+        price:
+          type: string
+          description: The price of the fill
+        time:
+          type: string
+          format: date-time
+          description: The date and time of the fill
+        commission:
+          type: string
+          description: The commission incurred for the fill
+        venue:
+          type: string
+          description: The name of the venue
     Order:
       type: object
       properties:
